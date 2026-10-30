@@ -7,14 +7,14 @@ allow_fp16 = true
 
 # No active_in on purpose: a profile is only used when the launch options pick it with LSFGVK_PROFILE.
 [[profile]]
-name = "FH2 Handheld"
+name = "Forza Handheld"
 multiplier = 2
 flow_scale = 0.75
 performance_mode = true
 pacing_mode = "vsync"
 
 [[profile]]
-name = "FH2 TV"
+name = "Forza TV"
 multiplier = 2
 flow_scale = 1.0
 performance_mode = false
