@@ -179,16 +179,13 @@ The games in SDR look flatter than in HDR, so this brings back some of the HDR l
 
 1. Deband
 2. Levels (black 0, white 250)
-3. [Blooming HDR](https://github.com/BlueSkyDefender/AstrayFX): bloom intensity 0.05/0.13 in FH2 and 0.08/0.20 in
-   FH3 (FH3 needs a bit more), saturation 0.95
+3. [Blooming HDR](https://github.com/BlueSkyDefender/AstrayFX): bloom intensity 0.08/0.20, saturation 0.95
 4. [Local Contrast](https://github.com/Fubaxiusz/fubax-shaders) (limit 14)
-5. Curves (contrast 0.16), FH2 only
-6. Vibrance (0.02)
-7. CAS sharpening (0.6)
+5. Vibrance (0.02)
+6. CAS sharpening (0.6)
 
-Deband, Levels, Curves, Vibrance and CAS come with the standard
-[reshade-shaders](https://github.com/crosire/reshade-shaders). The FH2 file also keeps settings for effects that
-are off (AmbientLight, RTAO, film grain); only the `Techniques=` line decides what runs.
+Both games use the same file; the two copies are identical. Deband, Levels, Vibrance and CAS come with the standard
+[reshade-shaders](https://github.com/crosire/reshade-shaders).
 
 ### HDR preset (without frame generation), FH2
 
@@ -224,7 +221,7 @@ Without frame generation, with HDR on and xalia off, FH2 handheld holds about 60
 | [FH2 Mod Platform](https://github.com/Trinculo54/fh2-mod-platform) | Loader that the mods below use (`d3dcompiler_47.dll`) | upstream; [my Proton fix](https://github.com/consultoria-deta/fh2-mod-platform/tree/wine-relocated-game) ([PR #17](https://github.com/Trinculo54/fh2-mod-platform/pull/17)) |
 | [Community Garage](https://github.com/qiangqiang101/CommunityGarage) | Share and download tunes, liveries and vinyl groups from the game's menus | upstream (my Proton fixes are merged); see the crash note below |
 | [FH2 DualSense](https://github.com/consultoria-deta/FH2-DualSense/tree/steam-deck/steamdeck) | Adaptive triggers, HD haptics and PlayStation button prompts | **my Steam Deck port** of [aminenrr/FH2-DualSense](https://github.com/aminenrr/FH2-DualSense) |
-| [FH2 Universal Radio](https://github.com/Trinculo54/FH2-Universal-Radio) | Plays your Spotify / YouTube Music playlists on the Pulse radio station | upstream; optional native Linux helper below (**untested in game**) |
+| [FH2 Universal Radio](https://github.com/Trinculo54/FH2-Universal-Radio) | Plays your Spotify / YouTube Music playlists on the Pulse radio station | upstream; optional native Linux helper below (tested in FH2 and FH3) |
 | [FH2 Achievements](https://github.com/Trinculo54/fh2-achievements) | Achievements | upstream |
 | CustomBindings 2.2.0 | Your own controller layout in Settings > Controls | Mod Platform mod |
 | FH2Patch + 25-car pack | Extra cars, NODIRT, AI_HIDE, SPGarage plugins | loaded through Extra Options' plugin loader |
@@ -249,34 +246,44 @@ skip_livery_texture_streams=1
 
 The visible cost is that layered liveries of Drivatars and other players don't show their texture streams. Tunes
 are unaffected. Newer Community Garage releases (1.1.5 and later) turn the workaround on for every runtime version;
-I haven't tested 1.1.5 on the Deck yet (it also moves its loader to `DWrite.dll`). **Status: the switch is the
-documented fix; confirmation on the Deck with 1.0.1 is pending.**
+I haven't tested 1.1.5 on the Deck yet (it also moves its loader to `DWrite.dll`). **Status: confirmed on the
+Deck with runtime 1.0.1: with the skip on, long sessions with liveries, fast travel and championships no longer stop.**
 
-### FH2 Universal Radio: native Linux helper (optional, untested in game)
+### FH2 Universal Radio: native Linux helper (optional)
 
-**Status: built and protocol-tested, not yet tested in game.** Under Proton, every YouTube Music track starts
+**Status: working in game in FH2 and FH3 on the Deck.** Under Proton, every YouTube Music track starts
 `yt-dlp.exe` twice and `ffmpeg.exe` once as Windows processes, and the audio crosses Wine pipes (wineserver). I
 wrote an optional helper that runs the native Linux yt-dlp and ffmpeg instead and streams over a loopback socket.
-It's prepared as a contribution to the radio's repo and isn't published yet. Until it's tested, keep using the
-normal radio release, which works under Proton through its worker process.
+It's prepared as a contribution to the radio's repo and isn't merged yet; until it is, you need a build of the radio
+with the `[native]` section.
 
-Planned setup, once released:
+Setup:
 
 1. Native binaries under your home folder (Proton's container can't see `/usr/local` or `/opt`):
-   `fh2-radio-native-helper`, yt-dlp from `yt-dlp_linux.zip` plus `deno` in the same folder, and a static ffmpeg.
-2. In `fh2-radio/config.toml`:
+   the helper plus a small `helper.sh` wrapper, yt-dlp from `yt-dlp_linux.zip` plus `deno` in the same folder, and
+   a **PIE, dynamically linked** ffmpeg such as the
+   [BtbN Linux builds](https://github.com/BtbN/FFmpeg-Builds/releases) (`ffmpeg-master-latest-linux64-gpl`).
+   Proton's sandbox kills non-PIE static binaries (exit code 159), so the usual "static ffmpeg" builds don't work,
+   and the helper itself is launched through the wrapper:
+
+   ```sh
+   #!/bin/sh
+   exec /home/deck/fh2-radio-native/fh2-radio-native-helper.pie "$@"
+   ```
+
+2. In `fh2-radio/config.toml` (FH3: `fh3-radio/config.toml`):
 
    ```toml
    [native]
    enabled = true
-   helper  = '/home/deck/fh2-radio-native/fh2-radio-native-helper'
+   helper  = '/home/deck/fh2-radio-native/helper.sh'
    yt_dlp  = '/home/deck/fh2-radio-native/yt-dlp/yt-dlp_linux'
-   ffmpeg  = '/home/deck/fh2-radio-native/ffmpeg'
+   ffmpeg  = '/home/deck/fh2-radio-native/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg'
    ```
 
 3. Fallback: if a path is missing or the helper doesn't answer, the radio logs why and uses the `.exe` path as
    before. `bridge.log` says `[native] helper up on 127.0.0.1:...` when the helper is in use, and
-   `[yt] pipe started via worker` when it isn't.
+   `[yt] pipe started via native helper` for each track.
 
 ### DualSense on the Deck
 
