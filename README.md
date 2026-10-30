@@ -329,11 +329,12 @@ The file is UTF-16; save it that way.
 Work in progress. What runs on my Deck today, all through Proton Experimental with the same xalia and frame
 generation settings as FH2 (30 -> 60 fps, SDR, [`reshade/FH3/Forza SDR.ini`](reshade/FH3/Forza%20SDR.ini)):
 
-* **DualSense:** triggers and haptics work in game, with the same `/dev/shm` channel and the same Python helper as
-  FH2. The FH3 port isn't published yet.
-* **Radio:** FH3 Universal Radio (my port of the FH2 radio) works in game through the normal `.exe` path.
-  **Radio nativa FH3: en prueba** (the native Linux helper for FH3 is not yet tested in game).
-* Extra Options port and the mod loader for FH3: not published yet.
+* **DualSense:** [FH3-DualSense](https://github.com/consultoria-deta/FH3-DualSense). Triggers over Bluetooth or
+  USB, HD haptics over USB, with the same `/dev/shm` channel and the same Python helper as FH2. The repo also has
+  the minimal FH3 mod loader it needs.
+* **Radio:** FH3 Universal Radio (my port of the FH2 radio) works in game, including the native Linux helper
+  described above for FH2. The FH3 port isn't published yet.
+* Extra Options port for FH3: not published yet.
 
 More once these are tested and published.
 
